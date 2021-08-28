@@ -9,40 +9,67 @@
 // @grant        none
 // ==/UserScript==
 
-(function() {
+(function run() {
     var results = "";
     var cars = document.getElementsByClassName("feeditem table");
+	for (var k = 0; k < cars.length; k++){
+		var id = cars[k].children[0].id;
+		var item = document.getElementById(id);
+		item.click();
+	}
 	for (var i = 0; i < cars.length; i++){
-		cars[i].click();
+		if (cars[i].getElementsByClassName("full_price")[0] != null){
+            cars[i].style.display = "none";
+			continue;
+        }
         var model = cars[i].getElementsByClassName("title")[0].innerText;
         var how_old = cars[i].getElementsByClassName("middle_col")[0];
         var year = how_old.getElementsByClassName("data")[0].childNodes[0].innerText;
         var hand = how_old.getElementsByClassName("data")[1].childNodes[0].innerText;
 		var price = cars[i].getElementsByClassName("price")[0].innerText.replace(',', '').replace('₪', '');
-		if (price.includes("לא צוין") || price.includes("לחודש")){
-            console.log("removed!!");
-            //cars[i].style.visibility = "hidden";
-			continue;
-        }
-		
-		
-		var more_details = cars[i].getElementsByClassName("details_wrapper")[0].childNodes;
-		var kilometer = more_details[0].childNodes[2].innerText;
-		var prev_owner = more_details[6].childNodes[2].innerText;
-		var curr_owner = more_details[7].childNodes[2].innerText;
-		console.log("kilometer: " + kilometer);
-		console.log("prev: " + prev_owner + " curr: " + curr_owner);
-		if (!prev_owner.includes("פרטית") && !curr_owner.includes("פרטית")){
-			console.log("BAD: " + prev_owner + "//" + curr_owner)
-			continue;
+		var link = cars[i].getElementsByClassName("share-template new-tab share-item")[0];
+		if (link != null){
+			link = link.href;
 		}
-        results = results + model + ", " + price + ", " + year + ", " + hand + "\n";
-		cars[i].click();
+		
+		var curr_owner = "";
+		curr_owner = document.getElementById("more_details_ownerID");
+		if (curr_owner != null){
+			console.log(curr_owner);
+			curr_owner = curr_owner.childNodes[0].innerText;
+			if (!curr_owner.includes("פרטית")){
+				console.log("Owner status: " + curr_owner + ". Removed! ")
+				cars[i].remove();
+				continue;
+			}
+		}
+		var prev_owner = "";
+		prev_owner = document.getElementById("more_details_previousOwner");
+		if (prev_owner!=null){
+			console.log(prev_owner);
+			prev_owner = prev_owner.childNodes[0].innerText;
+			console.log(prev_owner);
+			if (!prev_owner.includes("פרטית")){
+				console.log("Owner status: " + prev_owner + ". Removed! ")
+				cars[i].remove();
+				continue;
+			}
+		}
+        results = results + model + ", " + price + ", " + year + ", " + hand + ", " + link + "\n";
+		
 	}
 	console.log(results);
     console.log("Done");
-    download(results, "cars.txt", "txt");
+	for (var e = 0; e < 1000; e++){
+		console.log('.');
+	}
+    //download(results, "cars.txt", "txt");
 })();
+
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 function download(strData, strFileName, strMimeType) {
     var D = document,
